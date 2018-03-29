@@ -3,6 +3,11 @@ import sys
 
 
 def X_and_Y_from_file(file):
+    '''
+    Extracts the examples and set of tags from the file.
+    :param file: given file of boolean strings
+    :return: X set of examples and Y set of tags.
+    '''
     training_examples = np.loadtxt(file, int)
     d = training_examples.shape[1] - 1
     X = training_examples[:, :d]
@@ -11,6 +16,13 @@ def X_and_Y_from_file(file):
 
 
 def y_hat(atomic, negation, t):
+    '''
+    Calculates the prediction (y_hat)
+    :param atomic: the atomic array of the hypothesis
+    :param negation: the negation array of the hypothesis
+    :param t: instance of example
+    :return: true or false
+    '''
     for i, x in enumerate(t):
         if atomic[i] == 1 and x == 1:
             return 0
@@ -20,6 +32,12 @@ def y_hat(atomic, negation, t):
 
 
 def consistency_algorithm(examples, Y):
+    '''
+    Implements the consistency algorithm following the provided pseudo-code.
+    :param examples: set of examples X
+    :param Y: set of tags Y
+    :return: the hypothesis in two arrays.
+    '''
     atomic = [1] * examples.shape[1]
     negation = [1] * examples.shape[1]
 
@@ -34,6 +52,12 @@ def consistency_algorithm(examples, Y):
 
 
 def save_output(atomic, negation):
+    '''
+    Saves the output.
+    :param atomic: the atomic array of the hypothesis
+    :param negation: the negation array of the hypothesis
+    :return: none
+    '''
     string = ""
     for i, a in enumerate(atomic):
         if atomic[i] == 1:
