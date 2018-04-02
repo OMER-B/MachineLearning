@@ -1,13 +1,28 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
-fxya = np.random.normal(2 * 1, 1, 100)
-fxyb = np.random.normal(2 * 2, 1, 100)
-fxyc = np.random.normal(2 * 3, 1, 100)
 
-pxya = fxya / (fxya + fxyb + fxyc)
-pxyb = fxyb / (fxya + fxyb + fxyc)
-pxyc = fxyc / (fxya + fxyb + fxyc)
+def gradient():
+    pass
 
-print pxya
-print pxyb
-print pxyc
+
+def softmax(x):
+    ex = np.exp(x - np.max(x))
+    return ex / ex.sum()
+
+
+def generate_training_data(tags):
+    training_set = []
+    for tag in tags:
+        fxy = np.random.normal(2 * tag, 1, 100)
+        training_set.extend(fxy)
+    print training_set
+
+
+def main():
+    tags = [1, 2, 3]
+    generate_training_data(tags)
+
+
+if __name__ == '__main__':
+    main()
