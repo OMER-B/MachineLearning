@@ -1,8 +1,5 @@
 # coding=utf-8
 
-import matplotlib  #
-
-# matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
@@ -71,22 +68,6 @@ class ModelC(nn.Module):
         return F.log_softmax(x, dim=1)
 
 
-class ModelD(nn.Module):
-    def __init__(self, image_size=784):
-        super(ModelD, self).__init__()
-        self.image_size = image_size
-        self.fc0 = nn.Linear(image_size, FIRST_LAYER)
-        self.fc1 = nn.Linear(FIRST_LAYER, SECOND_LAYER)
-        self.fc2 = nn.Linear(SECOND_LAYER, OUTPUT)
-
-    def forward(self, x):
-        x = x.view(-1, self.image_size)
-        x = F.relu(self.fc0(x))
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        return F.log_softmax(x, dim=1)
-
-
 def train(epoch, model, train_loader, optimizer, batch_size):
     model.train()
     correct = 0
@@ -138,11 +119,11 @@ def pred_and_write(model, validation_loader):
     loss = 0.0
     for data, target in validation_loader:
         output = model(data)
-        loss = F.nll_loss(output, target)
+        loss += F.nll_loss(output, target, size_average=False)  # sum up batch loss
         pred = output.data.max(1, keepdim=True)[1]  # get the index of the max log-probability
         f.write(str(pred.item()) + "\n")
         r.write(str(target.item()) + "\n")
-    loss -= len(validation_loader)
+    loss /= len(validation_loader)
     print "Validation loss: " + str(loss.item())
     r.close()
     f.close()
@@ -189,10 +170,11 @@ def load(batch_size):
     return train_loader, test_loader, validation_loader
 
 
-def plot_loss(train_loss, test_loss):
-    plt.rcParams.update({'font.size': 15})
+def plot_loss(train_loss, test_loss, title):
+    plt.rcParams.update({'font.size': 12})
     plt.xlabel("Epochs")
     plt.ylabel("Loss")
+    plt.title(title)
     plt.box(False)
     plt.minorticks_on()
     plt.tick_params(direction='out', color='black')
@@ -208,52 +190,17 @@ def main():
     BATCH_SIZE = 64
     EPOCHS = 10
     IMAGE_SIZE = 784
-    ETA = 0.01
+    ETA = 0.001
     train_loader, test_loader, validation_loader = load(BATCH_SIZE)
-    model = ModelC(image_size=IMAGE_SIZE)
+    model = ModelB(image_size=IMAGE_SIZE)
     optimizer = optim.Adam(model.parameters(), lr=ETA)
-    train_loss, test_loss = start_learning(model=model, epochs=EPOCHS, train_loader=train_loader, optimizer=optimizer,
+    train_loss, test_loss = start_learning(model=model, epochs=EPOCHS, train_loader=train_loader,
+                                           optimizer=optimizer,
                                            validation_loader=validation_loader, batch_size=BATCH_SIZE)
     pred_and_write(model, test_loader)
-    compare("real.pred", "test.pred")
-    plot_loss(train_loss, test_loss)
+    compare()
+    plot_loss(train_loss, test_loss, "Model C")
 
 
-# Model C, Adam, 50:
-# 0.001 -   88.28%
-# 0.01  -   87.9%
-# 0.1   -   87.39%
-# 0.2   -   86.42%
-# 0.5   -   88.38%
-# Model C, Adam, 64:
-# 0.001 -   88.22%
-# 0.01  -   88.51%
-# 0.1   -   88.46%
-# 0.2   -   88.24%
-# 0.5   -   87.89%
-# Model B, SGD, 50:
-# 0.001 -   80.73%
-# 0.01  -   86.36%
-# 0.1   -   87.9%
-# 0.2   -   87.54%
-# 0.5   -   10.01%
-# Model B, SGD, 64:
-# 0.001 -   78.69%
-# 0.01  -   85.925%
-# 0.1   -   85.95%
-# 0.2   -   87.31%
-# 0.5   -   36.43%
-# Model A, SGD, 50:
-# 0.001 -   79.97%
-# 0.01  -   84.84%
-# 0.1   -   87.58%
-# 0.2   -   87.13%
-# 0.5   -   20.53%
-# Model A, SGD, 64:
-# 0.001 -   78.96%
-# 0.01  -   85.92%
-# 0.1   -   86.1%
-# 0.2   -   87.21%
-# 0.5   -   82.07%
 if __name__ == '__main__':
     main()
